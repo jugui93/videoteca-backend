@@ -33,7 +33,7 @@ app.use('/api/users', usersRouter);
  
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  const error = new HttpError('Could not find this route.',404);
+  const error = new HttpError('No se encuentra esta ruta.',404);
   throw error;
 });
 
@@ -45,7 +45,7 @@ app.use((error, req, res, next) => {
   }
 
   res.status(error.code || 500);
-  res.json({ message: error.message || 'An unknown error ocurred!'})
+  res.json({ message: error.message || '¡Ha ocurrido un error desconocido!'})
 });
 
 // database conection
@@ -54,8 +54,8 @@ mongoose
     `mongodb+srv://${process.env.USER_DB}:${process.env.PASSWORD_DB}@cluster0.tmhi8iz.mongodb.net/videos?retryWrites=true&w=majority`
   )
   .then(() => {
-    console.log("Connected to database");
-    console.log("Server running in port 3001")
+    console.log("Conectado a base de datos");
+    console.log("Servidor corriendo en el puerto 3001")
   })
   .catch((err) => {
     console.log(err);

@@ -12,14 +12,17 @@ const signup = async (req, res, next) => {
         existingUser = await User.findOne({ email: email })
     } catch (err) {
         const error = new HttpError(
-            "Siging up failed, please try again later",
+            "El registro falló, por favor intentelo mas tarde.",
             422
           );
           return next(error);
     }
 
     if (existingUser) {
-        const error = new HttpError('Could not create user, email already exists.', 422)
+        const error = new HttpError(
+          "No se pudo crear el usuario, el correo electrónico ya existe.",
+          422
+        );
         return next(error);
     }
 
@@ -28,7 +31,7 @@ const signup = async (req, res, next) => {
         hashedPassword = await bcrypt.hash(password, 10);
     } catch (err) {
         const error = new HttpError(
-          "Could no create user, please try again.",
+          "No se pudo crear el usuario, intentelo de nuevo.",
           500
         );
         return next(error);
@@ -49,7 +52,7 @@ const signup = async (req, res, next) => {
         await createdUser.save();
     } catch (err) {
         const error = new HttpError(
-          "Signing up failed, please try again",
+          "El registro falló, por favor intentelo de nuevo.",
           500
         );
         return next(error);
@@ -64,7 +67,7 @@ const signup = async (req, res, next) => {
       );
     } catch (err) {
       const error = new HttpError(
-        "Logging in failed, please try again",
+        "Error al iniciar sesión, inicia sesión de nuevo.",
         500
       );
       return next(error);
@@ -76,4 +79,67 @@ const signup = async (req, res, next) => {
 
 }
 
+const login = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    let existingUser;
+
+    try {
+      existingUser = await User.findOne({ email: email });
+    } catch (err) {
+      const error = new HttpError(
+        "Error al iniciar sesión, inténtelo de nuevo más tarde",
+        422
+      );
+      return next(error);
+    }
+
+    if (!existingUser ) {
+      const error = new HttpError(
+        "Credenciales no válidas, no se pudo iniciar sesión",
+        403
+      );
+      return next(error);
+    }
+    let isValidPassword = false;
+    try {
+      isValidPassword = await bcrypt.compare(password, existingUser.password );
+    } catch (err) {
+      const error = new HttpError(
+        "No se pudo iniciar sesión, por favor verifica tus datos e intenta de nuevo.",
+        500
+      );
+      return next(error);
+    }
+    
+    if ( !isValidPassword){
+      const error = new HttpError(
+        "Credenciales no válidas, no se pudo iniciar sesión.",
+        403
+      );
+      return next(error);
+    }
+
+    try {
+      token = jwt.sign(
+        { userId: existingUser.id, email: existingUser.email },
+        "clave_privada_no_compartir",
+        { expiresIn: "1h" }
+      );
+    } catch (err) {
+      const error = new HttpError(
+        "No se pudo iniciar sesión, por favor intenta de nuevo.",
+        500
+      );
+      return next(error);
+    }
+
+    res.json({
+      userId: existingUser.id,
+      email: existingUser.email,
+      token: token
+    });
+}
+
 exports.signup = signup;
+exports.login = login;
