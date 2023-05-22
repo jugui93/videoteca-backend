@@ -1,9 +1,19 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
 
+
 const signup = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new HttpError(
+      "Entradas invalidas, por favor verifica tus datos.",
+      422
+    );
+    return next(error);
+  }
   const { name, email, password } = req.body;
 
   let existingUser;
@@ -181,6 +191,14 @@ const getUserById = async (req, res, next) => {
 };
 
 const updateUserById = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new HttpError(
+      "Entradas invalidas, por favor verifica tus datos.",
+      422
+    );
+    return next(error);
+  }
   const { name, password } = req.body;
   const userId = req.params.uid;
 
@@ -227,13 +245,11 @@ const updateUserById = async (req, res, next) => {
     return next(error);
   }
 
-  res
-    .status(200)
-    .json({
-      userId: user.id,
-      name: user.name,
-      message: "Cambio de contraseña exitoso.",
-    });
+  res.status(200).json({
+    userId: user.id,
+    name: user.name,
+    message: "Cambio de contraseña exitoso.",
+  });
 };
 
 const deleteUser = async (req, res, next) => {
