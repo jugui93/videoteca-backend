@@ -156,6 +156,33 @@ const getUsers = async (req, res, next) => {
     res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 }
 
+const getUserById = async (req, res, next) => {
+    const userId = req.params.uid;
+
+    let user;
+    try {
+        user = await User.findById(userId);
+    } catch (err) {
+        const error = new HttpError(
+          "Algo salío mal, no se pudo encontrar el usuario.",
+          500
+        );
+        return next(error);
+    }
+    
+
+    if (!user) {
+        const error = new HttpError(
+          "No se pudo encontrar un usuario con el ID proporcionado",
+          404
+        );
+        return next(error);
+    }
+
+    res.json({user: user.toObject( {getters:true})});
+}
+
 exports.signup = signup;
 exports.login = login;
 exports.getUsers = getUsers;
+exports.getUserById = getUserById;
