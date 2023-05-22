@@ -1,12 +1,12 @@
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
-const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
 const usersRouter = require('./routes/users-routes');
+const videosRouter = require('./routes/videos-routes');
 const HttpError = require('./models/http-error');
 
 const app = express();
@@ -14,8 +14,7 @@ const app = express();
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'uploads')));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,6 +27,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/users', usersRouter);
+app.use('/api/videos', videosRouter);
  
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -37,6 +37,11 @@ app.use((req, res, next) => {
 
 // error handler
 app.use((error, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, err =>{
+      console.log(err)
+    })
+  }
   
   if (res.headersSent) {
       return next(error)
