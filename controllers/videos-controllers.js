@@ -88,7 +88,41 @@ const getVideoById = async (req, res, next) => {
     }
 
     res.status(200).json({video: video.toObject( {getters:true})});
-}
+};
+
+const getVideosByUserId = async (req, res, next) => {
+    const userId = req.params.uid;
+
+    let userWithVideos;
+    try {
+        userWithVideos = await User.findById(userId).populate('videos');
+    } catch (err) {
+        const error = new HttpError(
+          "La recuperación de videos falló, intenta de nuevo",
+          500
+        );
+        return next(error);
+    }
+    
+
+    if (
+      !userWithVideos ||
+      userWithVideos.videos.length === 0
+    ) {
+      return next(
+        new HttpError(
+          "No se pudo encontrar videos con el ID proporcionado ",
+          404
+        )
+      );
+    }
+
+    res.status(200).json({
+      videos: userWithVideos.videos.map((place) => place.toObject({ getters: true }))
+    });
+
+};
 
 exports.upload = upload;
 exports.getVideoById = getVideoById;
+exports.getVideosByUserId = getVideosByUserId;
