@@ -6,7 +6,6 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const indexRouter = require('./routes/index-routes');
 const usersRouter = require('./routes/users-routes');
 const HttpError = require('./models/http-error');
 
@@ -28,7 +27,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
  
 // catch 404 and forward to error handler

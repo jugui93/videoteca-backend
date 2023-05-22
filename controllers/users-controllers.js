@@ -141,5 +141,21 @@ const login = async (req, res, next) => {
     });
 }
 
+const getUsers = async (req, res, next) => {
+    let users;
+    try {
+        users = await User.find({}, '-password');
+    } catch (err) {
+        const error = new HttpError(
+          "Error al recuperar usuarios, inténtelo de nuevo más tarde",
+          500
+        );
+        return next(error);
+    }
+    
+    res.json({ users: users.map((user) => user.toObject({ getters: true })) });
+}
+
 exports.signup = signup;
 exports.login = login;
+exports.getUsers = getUsers;
