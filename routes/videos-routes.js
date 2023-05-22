@@ -7,10 +7,8 @@ const checkUpload = require('../middleware/check-upload');
 const videoUpload = require('../middleware/video-upload');
 
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+/* GET video by ID. */
+router.get('/:vid', videosControllers.getVideoById);
 /* Middleware to check autentication */
 router.use(checkAuth);
 /* POST upload video */

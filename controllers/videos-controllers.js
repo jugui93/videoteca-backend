@@ -1,11 +1,10 @@
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
+const mongoose  = require("mongoose");
 
 const Video = require("../models/video");
 const User = require("../models/user");
-const mongoose  = require("mongoose");
 
-mongoose
 const upload = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -56,7 +55,7 @@ const upload = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     const error = new HttpError(
-      "Fallo la subida del video, intenta de nuevo.",
+      "Falló la subida del video, intenta de nuevo.",
       500
     );
     return next(error);
@@ -65,4 +64,31 @@ const upload = async (req, res, next) => {
   res.status(201).json({ video: uploadedVideo.toObject({ getters: true }) });
 };
 
+const getVideoById = async (req, res, next) => {
+    const videoId = req.params.vid;
+
+    let video;
+    try {
+        video = await Video.findById(videoId);
+    } catch (err) {
+        const error = new HttpError(
+          "Algo salió mal, no se pudo encontrar video.",
+          500
+        );
+        return next(error);
+    }
+    
+
+    if (!video) {
+        const error = new HttpError(
+          "No se pudo encontrar un video con el ID proporcionado.",
+          404
+        );
+        return next(error);
+    }
+
+    res.status(200).json({video: video.toObject( {getters:true})});
+}
+
 exports.upload = upload;
+exports.getVideoById = getVideoById;
