@@ -14,8 +14,10 @@ router.get('/user/:uid', videosControllers.getVideosByUserId);
 /* Middleware to check autentication */
 router.use(checkAuth);
 /* POST upload video */
-router.post('/upload',videoUpload.single('video'), checkUpload, videosControllers.upload );
-/* PATCH update video */
+router.post('/upload',videoUpload.single('video'), checkUpload, videosControllers.uploadVideo );
+/* PATCH update video by Id */
 router.patch('/:vid',checkUpload, videosControllers.updateVideoById);
+/* DELETE update video by Id */
+router.delete('/:vid', videosControllers.deleteVideo);
 
 module.exports = router;

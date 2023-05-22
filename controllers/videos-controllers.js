@@ -1,11 +1,12 @@
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const mongoose  = require("mongoose");
+const fs = require('fs');
 
 const Video = require("../models/video");
 const User = require("../models/user");
 
-const upload = async (req, res, next) => {
+const uploadVideo = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
@@ -169,9 +170,66 @@ const updateVideoById = async (req, res, next) => {
     }
 
     res.status(200).json({ video: video.toObject({ getters: true }) });
+};
+
+const deleteVideo = async (req, res, next) => {
+    const videoId = req.params.vid;
+
+    let video;
+
+    try {
+        video = await Video.findById(videoId).populate('user');
+    } catch (err) {
+        const error = new HttpError(
+          "Algo salió mal, no se pudo obtener video.",
+          500
+        );
+        return next(error);
+    }
+
+    if (!video) {
+        const error = new HttpError(
+          "No se pudo encontrar video para este Id",
+          404
+        );
+        return next(error);
+    }
+
+    if (video.user.id !== req.userData.userId){
+      const error = new HttpError(
+        "No tienes permisos para eliminar este video.",
+        403
+      );
+      return next(error);
+    }
+
+    const videoPath = video.url
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await video.deleteOne({ session: sess });
+        video.user.videos.pull(video);
+        await video.user.save({session: sess});
+        await sess.commitTransaction();
+    } catch (err) {
+        console.log(err);
+        const error = new HttpError(
+            "Algo salió mal, no se pudo eliminar video",
+            500
+          );
+          return next(error);
+    }
+
+    fs.unlink(videoPath, err => {
+      console.log(err);
+    })
+
+    res.status(200).json({ message: "Video borrado." });
 }
 
-exports.upload = upload;
+exports.uploadVideo = uploadVideo;
 exports.getVideoById = getVideoById;
 exports.getVideosByUserId = getVideosByUserId;
 exports.updateVideoById = updateVideoById;
+exports.deleteVideo = deleteVideo;
