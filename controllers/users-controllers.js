@@ -236,8 +236,49 @@ const updateUserById = async (req, res, next) => {
     });
 };
 
+const deleteUser = async (req, res, next) => {
+  const userId = req.params.uid;
+  let user;
+  try {
+    user = await User.findById(userId);
+  } catch (err) {
+    const error = new HttpError(
+      "Algo salío mal, no se pudo encontrar el usuario.",
+      500
+    );
+    return next(error);
+  }
+  if (!user) {
+    const error = new HttpError(
+      "No se pudo encontrar usuario para este id.",
+      404
+    );
+    return next(error);
+  }
+  if (user.id !== req.userData.userId) {
+    const error = new HttpError(
+      "No tienes permisos para eliminar este usuario.",
+      401
+    );
+    return next(error);
+  }
+
+  try {
+    await user.deleteOne();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError(
+      "Algo salío mal, no se pudo eliminar el usuario",
+      500
+    );
+    return next(error);
+  }
+  res.status(200).json({message: 'Usuario eliminado.'})
+};
+
 exports.signup = signup;
 exports.login = login;
 exports.getUsers = getUsers;
 exports.getUserById = getUserById;
 exports.updateUserById = updateUserById;
+exports.deleteUser = deleteUser;
