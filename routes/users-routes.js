@@ -14,6 +14,8 @@ router.use(checkAuth);
 router.get('/', usersControllers.getUsers);
 /* GET user by id. */
 router.get('/:uid', usersControllers.getUserById);
+/* PATCH user by id. */
+router.patch('/:uid', usersControllers.updateUserById);
 
 
 module.exports = router;
