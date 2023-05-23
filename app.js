@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const usersRouter = require('./routes/users-routes');
 const videosRouter = require('./routes/videos-routes');
+const reviewsRouter = require('./routes/reviews-routes')
 const HttpError = require('./models/http-error');
 
 const app = express();
@@ -28,7 +29,8 @@ app.use((req, res, next) => {
 
 app.use('/api/users', usersRouter);
 app.use('/api/videos', videosRouter);
- 
+app.use('api/reviews', reviewsRouter);
+
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   const error = new HttpError('No se encuentra esta ruta.',404);
