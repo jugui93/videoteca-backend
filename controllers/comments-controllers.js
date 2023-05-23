@@ -96,5 +96,59 @@ const createComment = async (req, res, next) => {
   res.status(201).json({ comment: createdComment.toObject({ getters: true }) });
 };
 
+const updateComment = async (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      throw new HttpError(
+        "Entradas invalidas, por favor verifica tus datos",
+        422
+      );
+    }
+  
+    const { text } = req.body;
+    const commentId = req.params.cid;
+  
+    let comment;
+    try {
+      comment = await Comment.findById(commentId);
+    } catch (err) {
+      const error = new HttpError(
+        "Algo salió mal, no se pudo encontrar comentario",
+        500
+      );
+      return next(error);
+    }
+  
+    if (comment.user.toString() !== req.userData.userId) {
+      const error = new HttpError(
+        "No tienes permisos para editar este comentario.",
+        401
+      );
+      return next(error);
+    }
+  
+    comment.text = text;
+  
+    try {
+      await comment.save();
+    } catch (err) {
+      const error = new HttpError(
+        "Algo salió mal, no se pudo actualizar comentario",
+        500
+      );
+      return next(error);
+    }
+  
+    res.status(200).json({ comment: comment.toObject({ getters: true }) });
+};
+
+const deleteComment = (req, res, next) => {
+
+}
+
 exports.getCommentsByVideoId = getCommentsByVideoId;
 exports.createComment = createComment;
+exports.updateComment = updateComment;
+exports.deleteComment = deleteComment;

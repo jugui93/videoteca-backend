@@ -125,51 +125,53 @@ const getVideosByUserId = async (req, res, next) => {
 };
 
 const updateVideoById = async (req, res, next) => {
-    const errors = validationResult(req);
+  const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    throw new HttpError(
+      "Entradas invalidas, por favor verifica tus datos",
+      422
+    );
+  }
 
-        console.log(errors); 
-        throw new HttpError('Entradas invalidas, por favor verifica tus datos', 422 )
-    }
+  const { title, description, public } = req.body;
+  const videoId = req.params.vid;
 
-    const { title, description, public } = req.body;
-    const videoId = req.params.vid;
+  let video;
+  try {
+    video = await Video.findById(videoId);
+  } catch (err) {
+    const error = new HttpError(
+      "Algo salió mal, no se pudo encontrar video",
+      500
+    );
+    return next(error);
+  }
 
-    let video; 
-    try {
-        video = await Video.findById(videoId)
-    } catch (err) {
-        const error = new HttpError(
-          "Algo salió mal, no se pudo encontrar video",
-          500
-        );
-        return next(error);
-    }
+  if (video.user.toString() !== req.userData.userId) {
+    const error = new HttpError(
+      "No tienes permisos para editar este video.",
+      401
+    );
+    return next(error);
+  }
 
-    if (video.user.toString() !== req.userData.userId){
-      const error = new HttpError(
-        "No tienes permisos para editar este video.",
-        401
-      );
-      return next(error);
-    }
+  video.title = title;
+  video.description = description;
+  video.public = public.toLowerCase() === "true";
 
-    video.title = title;
-    video.description = description;
-    video.public = public.toLowerCase() === "true";
+  try {
+    await video.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Algo salió mal, no se pudo actualizar video",
+      500
+    );
+    return next(error);
+  }
 
-    try {
-      await video.save();
-    } catch (err) {
-      const error = new HttpError(
-        "Algo salió mal, no se pudo actualizar video",
-        500
-      );
-      return next(error);
-    }
-
-    res.status(200).json({ video: video.toObject({ getters: true }) });
+  res.status(200).json({ video: video.toObject({ getters: true }) });
 };
 
 const deleteVideo = async (req, res, next) => {
