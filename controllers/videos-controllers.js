@@ -257,9 +257,49 @@ const getVideosByPrivacity = async (req, res, next) => {
   res.status(200).json({videos: videos.map( video => video.toObject({ getters: true}))});
 };
 
+const getVideosByRating = async (req, res, next) => {
+    let videos;
+    try {
+      videos = await Video.aggregate([
+        {
+          $lookup: {
+            from: "reviews",
+            localField: "reviews",
+            foreignField: "_id",
+            as: "reviewData"
+          },
+        },
+        { $addFields: { meanRating: { $avg: '$reviewData.rating' } } },
+        { $sort: { meanRating: -1 } }
+      ]);
+    } catch (err) {
+        console.log(err);
+      const error = new HttpError(
+        "La recuperación de videos falló, intenta de nuevo",
+        500
+      );
+      return next(error);
+    }
+  
+    if( !videos || videos.length === 0){
+      return next(
+          new HttpError(
+            "No se pudo encontrar videos con rating",
+            404
+          )
+        );
+    }
+    res
+      .status(200)
+      .json({
+        videos/*: videos.map((video) => video.toObject({ getters: true })),*/
+      });
+}
+
 exports.uploadVideo = uploadVideo;
 exports.getVideoById = getVideoById;
 exports.getVideosByUserId = getVideosByUserId;
 exports.updateVideoById = updateVideoById;
 exports.deleteVideo = deleteVideo;
 exports.getVideosByPrivacity = getVideosByPrivacity;
+exports.getVideosByRating = getVideosByRating;

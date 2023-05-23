@@ -4,7 +4,7 @@ const HttpError = require("../models/http-error");
 const Comment = require("../models/comment");
 const Video = require("../models/video");
 const User = require("../models/user");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 const getCommentsByVideoId = async (req, res, next) => {
   const videoId = req.params.vid;
@@ -144,8 +144,56 @@ const updateComment = async (req, res, next) => {
     res.status(200).json({ comment: comment.toObject({ getters: true }) });
 };
 
-const deleteComment = (req, res, next) => {
+const deleteComment = async (req, res, next) => {
+    const commentId = req.params.cid;
 
+    let comment;
+
+    try {
+        comment = await Comment.findById(commentId).populate('user').populate('video');
+    } catch (err) {
+        const error = new HttpError(
+          "Algo salió mal, no se pudo obtener comentario.",
+          500
+        );
+        return next(error);
+    }
+
+    if (!comment) {
+        const error = new HttpError(
+          "No se pudo encontrar comentario para este Id",
+          404
+        );
+        return next(error);
+    }
+
+    if (comment.user.id !== req.userData.userId){
+      const error = new HttpError(
+        "No tienes permisos para eliminar este video.",
+        403
+      );
+      return next(error);
+    }
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await comment.deleteOne({ session: sess });
+        comment.user.comments.pull(comment);
+        comment.video.comments.pull(comment);
+        await comment.user.save({session: sess});
+        await comment.video.save({session: sess});
+        await sess.commitTransaction();
+    } catch (err) {
+        console.log(err)
+        const error = new HttpError(
+            "Algo salió mal, no se pudo eliminar comentario",
+            500
+          );
+          return next(error);
+    }
+
+    res.status(200).json({ message: "Comentario borrado." });
 }
 
 exports.getCommentsByVideoId = getCommentsByVideoId;

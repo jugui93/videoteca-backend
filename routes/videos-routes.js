@@ -6,7 +6,8 @@ const checkAuth = require('../middleware/check-auth');
 const checkUpload = require('../middleware/check-upload');
 const videoUpload = require('../middleware/video-upload');
 
-
+/* GET videos ordered by rating. */
+router.get('/by-rating', videosControllers.getVideosByRating);
 /* GET video by ID. */
 router.get('/:vid', videosControllers.getVideoById);
 /* GET videos by user ID. */
