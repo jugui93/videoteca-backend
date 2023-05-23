@@ -7,7 +7,8 @@ require('dotenv').config();
 
 const usersRouter = require('./routes/users-routes');
 const videosRouter = require('./routes/videos-routes');
-const reviewsRouter = require('./routes/reviews-routes')
+const reviewsRouter = require('./routes/reviews-routes');
+const commentsRouter = require('./routes/comments-routes');
 const HttpError = require('./models/http-error');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use((req, res, next) => {
 app.use('/api/users', usersRouter);
 app.use('/api/videos', videosRouter);
 app.use('/api/reviews', reviewsRouter);
+app.use('/api/comments', commentsRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
