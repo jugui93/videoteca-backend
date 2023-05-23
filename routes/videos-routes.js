@@ -11,6 +11,8 @@ const videoUpload = require('../middleware/video-upload');
 router.get('/:vid', videosControllers.getVideoById);
 /* GET videos by user ID. */
 router.get('/user/:uid', videosControllers.getVideosByUserId);
+/* GET videos by privacity. */
+router.get('/privacity/:status', videosControllers.getVideosByPrivacity);
 /* Middleware to check autentication */
 router.use(checkAuth);
 /* POST upload video */

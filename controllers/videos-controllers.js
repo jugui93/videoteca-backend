@@ -228,8 +228,37 @@ const deleteVideo = async (req, res, next) => {
     res.status(200).json({ message: "Video borrado." });
 }
 
+const getVideosByPrivacity = async (req, res, next) => {
+  const privacyStatus = req.params.status;
+  let videos;
+  try {
+    if (privacyStatus === "public") {
+      videos = await Video.find({ public: true });
+    } else {
+      videos = await Video.find({ public: false });
+    }
+  } catch (err) {
+    const error = new HttpError(
+      "La recuperación de videos falló, intenta de nuevo",
+      500
+    );
+    return next(error);
+  }
+
+  if( !videos || videos.length === 0){
+    return next(
+        new HttpError(
+          "No se pudo encontrar videos con la privacidad seleccionada ",
+          404
+        )
+      );
+  }
+  res.status(200).json({videos: videos.map( video => video.toObject({ getters: true}))});
+};
+
 exports.uploadVideo = uploadVideo;
 exports.getVideoById = getVideoById;
 exports.getVideosByUserId = getVideosByUserId;
 exports.updateVideoById = updateVideoById;
 exports.deleteVideo = deleteVideo;
+exports.getVideosByPrivacity = getVideosByPrivacity;
