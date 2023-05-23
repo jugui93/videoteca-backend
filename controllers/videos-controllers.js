@@ -213,7 +213,6 @@ const deleteVideo = async (req, res, next) => {
         await video.user.save({session: sess});
         await sess.commitTransaction();
     } catch (err) {
-        console.log(err);
         const error = new HttpError(
             "Algo salió mal, no se pudo eliminar video",
             500
